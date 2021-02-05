@@ -91,7 +91,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 });
             
                 // imgproc::cvt_color(&mut frame, &mut oldframe, imgproc::COLOR_GRAY2BGR, 0)?;
-                imgproc::rectangle(&mut oldframe, face, Scalar::new(0f64, 255f64, 0f64, -1f64), THICKNESS, LINE_TYPE, SHIFT)?;
+                imgproc::rectangle(&mut oldframe, face, Scalar::new(86f64, 220f64, 254f64, -1f64), THICKNESS, LINE_TYPE, SHIFT)?;
             }
         }
 
