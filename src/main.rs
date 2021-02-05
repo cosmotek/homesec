@@ -1,6 +1,7 @@
 extern crate opencv;
 use opencv::highgui;
 use std::thread;
+use std::time::{Duration, Instant};
 
 use opencv::videoio::{VideoCapture, CAP_FFMPEG, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_HEIGHT, CAP_PROP_FRAME_WIDTH, CAP_PROP_POS_FRAMES};
 use opencv::videoio::prelude::VideoCaptureTrait;
@@ -33,7 +34,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     highgui::resize_window(WINDOW_NAME, 800, 600).unwrap();
 
     let mut imgs = 0;
+    let mut a_time = Instant::now();
+    let mut b_time = Instant::now();
+
     loop {
+        a_time = b_time;
+        b_time = Instant::now();
+        let delta_time = b_time.duration_since(a_time);
+
         let mut oldframe = Mat::default()?;
         let next_exists = vid.read(&mut oldframe).unwrap();
         // let mut frame = Mat::default()?;
@@ -95,7 +103,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 imgproc::put_text(&mut oldframe, "unknown", Point::new(face.x, face.y-10), imgproc::FONT_HERSHEY_PLAIN, 1.0, Scalar::new(86f64, 220f64, 254f64, -1f64), 1, LINE_TYPE, false)?;
             }
 
-            imgproc::put_text(&mut oldframe, "FPS: 60", Point::new(5, 20), imgproc::FONT_HERSHEY_PLAIN, 1.0, Scalar::new(0.0, 0.0, 255.0, -1f64), 1, 8, false)?;
+            let mut delta_millis = delta_time.as_millis();
+            if delta_millis == 0 {
+                delta_millis = 16;
+            }
+            imgproc::put_text(&mut oldframe, &format!("FPS: {}", (1000 / delta_millis))[..], Point::new(5, 20), imgproc::FONT_HERSHEY_PLAIN, 1.5, Scalar::new(0.0, 0.0, 255.0, -1f64), 2, 8, false)?;
         }
 
         // let mut new_frame = Mat::default()?;
