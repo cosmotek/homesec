@@ -1,16 +1,14 @@
 extern crate opencv;
 use opencv::highgui;
-use opencv::imgcodecs;
-use std::io::{Error};
+use std::thread;
 
 use opencv::videoio::{VideoCapture, CAP_FFMPEG, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_HEIGHT, CAP_PROP_FRAME_WIDTH, CAP_PROP_POS_FRAMES};
 use opencv::videoio::prelude::VideoCaptureTrait;
-use opencv::dnn::prelude::NetTrait;
-use opencv::dnn;
-use opencv::core::{Mat, Vector, Scalar, Size, CV_32F};
-use opencv::types::{VectorOfString};
-use opencv::imgproc::{cvt_color, COLOR_RGB2RGBA};
-use opencv::core::prelude::MatTrait;
+use opencv::core::{Mat, Scalar, Size, Vector};
+// use opencv::types::{VectorOfString};
+// use opencv::imgproc::{cvt_color, COLOR_RGB2RGBA};
+use opencv::imgcodecs::{imwrite, IMWRITE_JPEG_QUALITY};
+// use opencv::core::prelude::MatTrait;
 // use opencv::objdetect::{CascadeClassifier};
 // use opencv::objdetect::CascadeClassifierTrait;
 use opencv::core::{Rect};
@@ -18,7 +16,7 @@ use opencv::{imgproc, objdetect, prelude::*, types};
 
 const WINDOW_NAME: &str = "Optimus Engine Visual Debugger";
 
-https://www.pyimagesearch.com/2019/09/02/opencv-stream-video-to-web-browser-html-page/
+// https://www.pyimagesearch.com/2019/09/02/opencv-stream-video-to-web-browser-html-page/
 
 const CAPTURE_WIDTH: i32 = 800;
 const CAPTURE_HEIGHT: i32 = 600;
@@ -34,6 +32,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     highgui::named_window(WINDOW_NAME, 0).unwrap();
     highgui::resize_window(WINDOW_NAME, 800, 600).unwrap();
 
+    let mut imgs = 0;
     loop {
         let mut oldframe = Mat::default()?;
         let next_exists = vid.read(&mut oldframe).unwrap();
@@ -79,10 +78,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 const THICKNESS: i32 = 2;
                 const LINE_TYPE: i32 = 8;
                 const SHIFT: i32 = 0;
-                let color_red = Scalar::new(0f64, 0f64, 255f64, -1f64);
+
+                let face_clip = Mat::roi(&oldframe.clone(), face)?;
+                imgs += 1;
+
+                let mut compression_params = Vector::new();
+                compression_params.push(IMWRITE_JPEG_QUALITY);
+                compression_params.push(100);
+
+                thread::spawn(move || {
+                    imwrite(&format!("clippings/clipping{}.jpg", imgs)[..], &face_clip, &compression_params).unwrap();
+                });
             
                 // imgproc::cvt_color(&mut frame, &mut oldframe, imgproc::COLOR_GRAY2BGR, 0)?;
-                imgproc::rectangle(&mut oldframe, scaled_face, color_red, THICKNESS, LINE_TYPE, SHIFT)?;
                 imgproc::rectangle(&mut oldframe, face, Scalar::new(0f64, 255f64, 0f64, -1f64), THICKNESS, LINE_TYPE, SHIFT)?;
             }
         }
@@ -91,7 +99,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // frame.convert_to(&mut new_frame, -1, 1.0, 2.0).unwrap();
 
         highgui::imshow(WINDOW_NAME, &oldframe).unwrap();
-        highgui::wait_key(16);
+        highgui::wait_key(1);
         // highgui::wait_key(((1000.0 / vid.frame_rate) / 4.0) as i32).unwrap();
     
         // let blob = dnn::blob_from_image(&frame, 1.0, Size::new(vid_width as i32, vid_height as i32), Scalar::from(0.007843), false, false, CV_32F).unwrap();
