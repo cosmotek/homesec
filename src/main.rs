@@ -4,7 +4,7 @@ use std::thread;
 
 use opencv::videoio::{VideoCapture, CAP_FFMPEG, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_HEIGHT, CAP_PROP_FRAME_WIDTH, CAP_PROP_POS_FRAMES};
 use opencv::videoio::prelude::VideoCaptureTrait;
-use opencv::core::{Mat, Scalar, Size, Vector};
+use opencv::core::{Mat, Scalar, Size, Vector, Point};
 // use opencv::types::{VectorOfString};
 // use opencv::imgproc::{cvt_color, COLOR_RGB2RGBA};
 use opencv::imgcodecs::{imwrite, IMWRITE_JPEG_QUALITY};
@@ -79,20 +79,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 const LINE_TYPE: i32 = 8;
                 const SHIFT: i32 = 0;
 
-                let face_clip = Mat::roi(&oldframe.clone(), face)?;
-                imgs += 1;
+                // let face_clip = Mat::roi(&oldframe.clone(), face)?;
+                // imgs += 1;
 
-                let mut compression_params = Vector::new();
-                compression_params.push(IMWRITE_JPEG_QUALITY);
-                compression_params.push(100);
+                // let mut compression_params = Vector::new();
+                // compression_params.push(IMWRITE_JPEG_QUALITY);
+                // compression_params.push(100);
 
-                thread::spawn(move || {
-                    imwrite(&format!("clippings/clipping{}.jpg", imgs)[..], &face_clip, &compression_params).unwrap();
-                });
+                // thread::spawn(move || {
+                //     imwrite(&format!("clippings/clipping{}.jpg", imgs)[..], &face_clip, &compression_params).unwrap();
+                // });
             
                 // imgproc::cvt_color(&mut frame, &mut oldframe, imgproc::COLOR_GRAY2BGR, 0)?;
                 imgproc::rectangle(&mut oldframe, face, Scalar::new(86f64, 220f64, 254f64, -1f64), THICKNESS, LINE_TYPE, SHIFT)?;
+                imgproc::put_text(&mut oldframe, "unknown", Point::new(face.x, face.y-10), imgproc::FONT_HERSHEY_PLAIN, 1.0, Scalar::new(86f64, 220f64, 254f64, -1f64), 1, LINE_TYPE, false)?;
             }
+
+            imgproc::put_text(&mut oldframe, "FPS: 60", Point::new(5, 20), imgproc::FONT_HERSHEY_PLAIN, 1.0, Scalar::new(0.0, 0.0, 255.0, -1f64), 1, 8, false)?;
         }
 
         // let mut new_frame = Mat::default()?;
