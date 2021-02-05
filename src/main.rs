@@ -2,6 +2,7 @@ extern crate opencv;
 use opencv::highgui;
 use std::thread;
 use std::time::{Duration, Instant};
+use std::env;
 
 use opencv::videoio::{VideoCapture, CAP_FFMPEG, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_HEIGHT, CAP_PROP_FRAME_WIDTH, CAP_PROP_POS_FRAMES};
 use opencv::videoio::prelude::VideoCaptureTrait;
@@ -23,15 +24,23 @@ const CAPTURE_WIDTH: i32 = 800;
 const CAPTURE_HEIGHT: i32 = 600;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let input_video_file = "/home/cosmotek/Downloads/The.Unicorn.S01E12.HDTV.x264-KILLERS[ettv]/The.Unicorn.S01E12.HDTV.x264-KILLERS[ettv].mkv";
+    // let input_video_file = "/home/cosmotek/Downloads/The.Unicorn.S01E12.HDTV.x264-KILLERS[ettv]/The.Unicorn.S01E12.HDTV.x264-KILLERS[ettv].mkv";
     let classifer_file = "/home/cosmotek/code/rust/homesec/haarcascade_frontalface_default.xml";
+    let input_video_file = "rtsp://192.168.0.21:5554";
 
+    env::set_var("OPENCV_FFMPEG_CAPTURE_OPTIONS", "rtsp_transport;udp");
     let mut vid = VideoCapture::from_file(input_video_file, CAP_FFMPEG).unwrap();
-    vid.set(CAP_PROP_POS_FRAMES, 4000.0);
+    while !vid.is_opened()? {
+        println!("awaiting video open...");
+        highgui::wait_key(500)?;
+    }
+
+    println!("starting feed");
+    // vid.set(CAP_PROP_POS_FRAMES, 4000.0);
     let mut class = objdetect::CascadeClassifier::new(classifer_file)?;
 
-    highgui::named_window(WINDOW_NAME, 0).unwrap();
-    highgui::resize_window(WINDOW_NAME, 800, 600).unwrap();
+    highgui::named_window(WINDOW_NAME, highgui::WINDOW_AUTOSIZE).unwrap();
+    // highgui::resize_window(WINDOW_NAME, 800, 600).unwrap();
 
     let mut imgs = 0;
     let mut a_time = Instant::now();
@@ -87,16 +96,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 const LINE_TYPE: i32 = 8;
                 const SHIFT: i32 = 0;
 
-                // let face_clip = Mat::roi(&oldframe.clone(), face)?;
-                // imgs += 1;
+                let face_clip = Mat::roi(&oldframe.clone(), face)?;
+                imgs += 1;
 
-                // let mut compression_params = Vector::new();
-                // compression_params.push(IMWRITE_JPEG_QUALITY);
-                // compression_params.push(100);
+                let mut compression_params = Vector::new();
+                compression_params.push(IMWRITE_JPEG_QUALITY);
+                compression_params.push(100);
 
-                // thread::spawn(move || {
-                //     imwrite(&format!("clippings/clipping{}.jpg", imgs)[..], &face_clip, &compression_params).unwrap();
-                // });
+                thread::spawn(move || {
+                    imwrite(&format!("clippings/clipping{}.jpg", imgs)[..], &face_clip, &compression_params).unwrap();
+                });
             
                 // imgproc::cvt_color(&mut frame, &mut oldframe, imgproc::COLOR_GRAY2BGR, 0)?;
                 imgproc::rectangle(&mut oldframe, face, Scalar::new(86f64, 220f64, 254f64, -1f64), THICKNESS, LINE_TYPE, SHIFT)?;
@@ -114,7 +123,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // frame.convert_to(&mut new_frame, -1, 1.0, 2.0).unwrap();
 
         highgui::imshow(WINDOW_NAME, &oldframe).unwrap();
-        highgui::wait_key(1);
+        highgui::wait_key(1)?;
         // highgui::wait_key(((1000.0 / vid.frame_rate) / 4.0) as i32).unwrap();
     
         // let blob = dnn::blob_from_image(&frame, 1.0, Size::new(vid_width as i32, vid_height as i32), Scalar::from(0.007843), false, false, CV_32F).unwrap();
