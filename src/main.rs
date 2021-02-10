@@ -178,18 +178,20 @@ fn tick<R>(name: &str, f: impl Fn() -> R) -> R {
     result
 }
 
-#[cfg(feature = "embed-all")]
+// #[cfg(feature = "embed-all")]
 fn main() {
     let mut args = std::env::args().skip(1);
     let input = args.next().unwrap();
     let output = args.next().unwrap();
 
-    let mut image = image::open(input).unwrap().to_rgb();
+    let mut image = image::open(input).unwrap().to_rgb8();
     let matrix = ImageMatrix::from_image(&image);
 
-    let detector = FaceDetector::default();
-    let cnn_detector = FaceDetectorCnn::default();
-    let landmarks = LandmarkPredictor::default();
+    let detector = FaceDetector::new();
+    let cnn_detector = FaceDetectorCnn::new("/home/cosmotek/code/rust/homesec/models/shape_predictor_68_face_landmarks.dat").unwrap();
+    let landmarks = LandmarkPredictor::new("/home/cosmotek/code/rust/homesec/models/mmod_human_face_detector.dat").unwrap();
+    // let landmarks = LandmarkPredictor::default();
+
 
     let red = Rgb([255, 0, 0]);
     let green = Rgb([0, 255, 0]);
@@ -252,24 +254,24 @@ fn main() {
 // }
 
 // #[cfg(not(feature = "embed-all"))]
-fn main() {
-    panic!("You need to run this example with '--features embed-all'.");
-    // let conf = Config {
-    //     rtsp_devices: ["192.168.0.21:5554".to_string()].to_vec(),
-    //     data_dir: "homesec/data/".to_string(),
-    //     // detection_params: FaceDetectionParams {
-    //     //     min_neighbors: 2,
-    //     //     min_face_size: XYSize {
-    //     //         width: 10,
-    //     //         height: 10,
-    //     //     },
-    //     //     max_face_size: XYSize {
-    //     //         width: 250,
-    //     //         height: 250,
-    //     //     },
-    //     // },
-    // };
+// fn main() {
+//     panic!("You need to run this example with '--features embed-all'.");
+//     // let conf = Config {
+//     //     rtsp_devices: ["192.168.0.21:5554".to_string()].to_vec(),
+//     //     data_dir: "homesec/data/".to_string(),
+//     //     // detection_params: FaceDetectionParams {
+//     //     //     min_neighbors: 2,
+//     //     //     min_face_size: XYSize {
+//     //     //         width: 10,
+//     //     //         height: 10,
+//     //     //     },
+//     //     //     max_face_size: XYSize {
+//     //     //         width: 250,
+//     //     //         height: 250,
+//     //     //     },
+//     //     // },
+//     // };
 
-    // let s = toml::to_string(&conf).unwrap();
-    // println!("{}", s);
-}
+//     // let s = toml::to_string(&conf).unwrap();
+//     // println!("{}", s);
+// }
