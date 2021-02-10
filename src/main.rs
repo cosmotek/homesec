@@ -17,6 +17,11 @@ use opencv::imgcodecs::{imwrite, IMWRITE_JPEG_QUALITY};
 use opencv::core::{Rect};
 use opencv::{imgproc, objdetect, prelude::*, types};
 
+// fn read_config() {
+//     let deserialized_point: Point = serde_yaml::from_str(&s)?;
+// }
+
+
 const WINDOW_NAME: &str = "Optimus Engine Visual Debugger";
 
 // https://www.pyimagesearch.com/2019/09/02/opencv-stream-video-to-web-browser-html-page/
@@ -143,82 +148,128 @@ const CAPTURE_HEIGHT: i32 = 600;
 //     }
 // }
 
-use image::*;
+// use image::*;
 
-use dlib_face_recognition::*;
+// use dlib_face_recognition::*;
 
-fn draw_rectangle(image: &mut RgbImage, rect: &Rectangle, colour: Rgb<u8>) {
-    for x in rect.left..rect.right {
-        image.put_pixel(x as u32, rect.top as u32, colour);
-        image.put_pixel(x as u32, rect.bottom as u32, colour);
-    }
+// fn draw_rectangle(image: &mut RgbImage, rect: &Rectangle, colour: Rgb<u8>) {
+//     for x in rect.left..rect.right {
+//         image.put_pixel(x as u32, rect.top as u32, colour);
+//         image.put_pixel(x as u32, rect.bottom as u32, colour);
+//     }
 
-    for y in rect.top..rect.bottom {
-        image.put_pixel(rect.left as u32, y as u32, colour);
-        image.put_pixel(rect.right as u32, y as u32, colour);
-    }
+//     for y in rect.top..rect.bottom {
+//         image.put_pixel(rect.left as u32, y as u32, colour);
+//         image.put_pixel(rect.right as u32, y as u32, colour);
+//     }
+// }
+
+// fn draw_point(image: &mut RgbImage, point: &Point, colour: Rgb<u8>) {
+//     image.put_pixel(point.x as u32, point.y as u32, colour);
+//     image.put_pixel(point.x as u32 + 1, point.y as u32, colour);
+//     image.put_pixel(point.x as u32 + 1, point.y as u32 + 1, colour);
+//     image.put_pixel(point.x as u32, point.y as u32 + 1, colour);
+// }
+
+// fn tick<R>(name: &str, f: impl Fn() -> R) -> R {
+//     let now = std::time::Instant::now();
+//     let result = f();
+//     println!("[{}] elapsed time: {}ms", name, now.elapsed().as_millis());
+//     result
+// }
+
+// #[cfg(feature = "embed-all")]
+// fn main() {
+//     let mut args = std::env::args().skip(1);
+//     let input = args.next().unwrap();
+//     let output = args.next().unwrap();
+
+//     let mut image = image::open(input).unwrap().to_rgb();
+//     let matrix = ImageMatrix::from_image(&image);
+
+//     let detector = FaceDetector::default();
+//     let cnn_detector = FaceDetectorCnn::default();
+//     let landmarks = LandmarkPredictor::default();
+
+//     let red = Rgb([255, 0, 0]);
+//     let green = Rgb([0, 255, 0]);
+
+//     let face_locations = tick("FaceDetector", || detector.face_locations(&matrix));
+
+//     for r in face_locations.iter() {
+//         draw_rectangle(&mut image, &r, red);
+
+//         let landmarks = landmarks.face_landmarks(&matrix, &r);
+
+//         for point in landmarks.iter() {
+//             draw_point(&mut image, &point, red);
+//         }
+//     }
+
+//     let face_locations = tick("FaceDetectorCnn", || cnn_detector.face_locations(&matrix));
+
+//     for r in face_locations.iter() {
+//         draw_rectangle(&mut image, &r, green);
+
+//         let landmarks = tick("LandmarkPredictor", || {
+//             landmarks.face_landmarks(&matrix, &r)
+//         });
+
+//         for point in landmarks.iter() {
+//             draw_point(&mut image, &point, green);
+//         }
+//     }
+
+//     image.save(&output).unwrap();
+// }
+// extern crate serde_yaml;
+extern crate toml;
+
+#[macro_use]
+extern crate serde_derive;
+
+// use serde_yaml::{Error};
+use serde::{Serialize, Deserialize};
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+struct XYSize {
+    width: i32,
+    height: i32,
 }
 
-fn draw_point(image: &mut RgbImage, point: &Point, colour: Rgb<u8>) {
-    image.put_pixel(point.x as u32, point.y as u32, colour);
-    image.put_pixel(point.x as u32 + 1, point.y as u32, colour);
-    image.put_pixel(point.x as u32 + 1, point.y as u32 + 1, colour);
-    image.put_pixel(point.x as u32, point.y as u32 + 1, colour);
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+struct FaceDetectionParams {
+    min_neighbors: i32,
+    min_face_size: XYSize,
+    max_face_size: XYSize,
 }
 
-fn tick<R>(name: &str, f: impl Fn() -> R) -> R {
-    let now = std::time::Instant::now();
-    let result = f();
-    println!("[{}] elapsed time: {}ms", name, now.elapsed().as_millis());
-    result
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+struct Config {
+    rtsp_devices: Vec<String>,
+    // detection_params: FaceDetectionParams,
+    data_dir: String,
 }
 
-#[cfg(feature = "embed-all")]
+// #[cfg(not(feature = "embed-all"))]
 fn main() {
-    let mut args = std::env::args().skip(1);
-    let input = args.next().unwrap();
-    let output = args.next().unwrap();
+    // panic!("You need to run this example with '--features embed-all'.");
+    let conf = Config {
+        rtsp_devices: ["192.168.0.21:5554".to_string()].to_vec(),
+        data_dir: "homesec/data/".to_string(),
+        // detection_params: FaceDetectionParams {
+        //     min_neighbors: 2,
+        //     min_face_size: XYSize {
+        //         width: 10,
+        //         height: 10,
+        //     },
+        //     max_face_size: XYSize {
+        //         width: 250,
+        //         height: 250,
+        //     },
+        // },
+    };
 
-    let mut image = image::open(input).unwrap().to_rgb();
-    let matrix = ImageMatrix::from_image(&image);
-
-    let detector = FaceDetector::default();
-    let cnn_detector = FaceDetectorCnn::default();
-    let landmarks = LandmarkPredictor::default();
-
-    let red = Rgb([255, 0, 0]);
-    let green = Rgb([0, 255, 0]);
-
-    let face_locations = tick("FaceDetector", || detector.face_locations(&matrix));
-
-    for r in face_locations.iter() {
-        draw_rectangle(&mut image, &r, red);
-
-        let landmarks = landmarks.face_landmarks(&matrix, &r);
-
-        for point in landmarks.iter() {
-            draw_point(&mut image, &point, red);
-        }
-    }
-
-    let face_locations = tick("FaceDetectorCnn", || cnn_detector.face_locations(&matrix));
-
-    for r in face_locations.iter() {
-        draw_rectangle(&mut image, &r, green);
-
-        let landmarks = tick("LandmarkPredictor", || {
-            landmarks.face_landmarks(&matrix, &r)
-        });
-
-        for point in landmarks.iter() {
-            draw_point(&mut image, &point, green);
-        }
-    }
-
-    image.save(&output).unwrap();
-}
-
-#[cfg(not(feature = "embed-all"))]
-fn main() {
-    panic!("You need to run this example with '--features embed-all'.");
+    let s = toml::to_string(&conf).unwrap();
+    println!("{}", s);
 }
