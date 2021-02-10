@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 opencv = "0.46.3"
+dlib-face-recognition = "0.1.7"
