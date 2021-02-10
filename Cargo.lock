@@ -261,6 +261,7 @@ name = "homesec"
 version = "0.1.0"
 dependencies = [
  "dlib-face-recognition",
+ "image",
  "opencv",
  "serde",
  "serde_derive",
