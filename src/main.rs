@@ -147,83 +147,83 @@
 //         // };
 //     }
 // }
-extern crate image;
-use image::{RgbImage, Rgb};
+// extern crate image;
+// use image::{RgbImage, Rgb};
 
-use dlib_face_recognition::*;
+// use dlib_face_recognition::*;
 
-fn draw_rectangle(image: &mut RgbImage, rect: &Rectangle, colour: Rgb<u8>) {
-    for x in rect.left..rect.right {
-        image.put_pixel(x as u32, rect.top as u32, colour);
-        image.put_pixel(x as u32, rect.bottom as u32, colour);
-    }
+// fn draw_rectangle(image: &mut RgbImage, rect: &Rectangle, colour: Rgb<u8>) {
+//     for x in rect.left..rect.right {
+//         image.put_pixel(x as u32, rect.top as u32, colour);
+//         image.put_pixel(x as u32, rect.bottom as u32, colour);
+//     }
 
-    for y in rect.top..rect.bottom {
-        image.put_pixel(rect.left as u32, y as u32, colour);
-        image.put_pixel(rect.right as u32, y as u32, colour);
-    }
-}
+//     for y in rect.top..rect.bottom {
+//         image.put_pixel(rect.left as u32, y as u32, colour);
+//         image.put_pixel(rect.right as u32, y as u32, colour);
+//     }
+// }
 
-fn draw_point(image: &mut RgbImage, point: &Point, colour: Rgb<u8>) {
-    image.put_pixel(point.x() as u32, point.y() as u32, colour);
-    image.put_pixel(point.x() as u32 + 1, point.y() as u32, colour);
-    image.put_pixel(point.x() as u32 + 1, point.y() as u32 + 1, colour);
-    image.put_pixel(point.x() as u32, point.y() as u32 + 1, colour);
-}
+// fn draw_point(image: &mut RgbImage, point: &Point, colour: Rgb<u8>) {
+//     image.put_pixel(point.x() as u32, point.y() as u32, colour);
+//     image.put_pixel(point.x() as u32 + 1, point.y() as u32, colour);
+//     image.put_pixel(point.x() as u32 + 1, point.y() as u32 + 1, colour);
+//     image.put_pixel(point.x() as u32, point.y() as u32 + 1, colour);
+// }
 
-fn tick<R>(name: &str, f: impl Fn() -> R) -> R {
-    let now = std::time::Instant::now();
-    let result = f();
-    println!("[{}] elapsed time: {}ms", name, now.elapsed().as_millis());
-    result
-}
+// fn tick<R>(name: &str, f: impl Fn() -> R) -> R {
+//     let now = std::time::Instant::now();
+//     let result = f();
+//     println!("[{}] elapsed time: {}ms", name, now.elapsed().as_millis());
+//     result
+// }
 
-// #[cfg(feature = "embed-all")]
-fn main() {
-    let mut args = std::env::args().skip(1);
-    let input = args.next().unwrap();
-    let output = args.next().unwrap();
+// // #[cfg(feature = "embed-all")]
+// fn main() {
+//     let mut args = std::env::args().skip(1);
+//     let input = args.next().unwrap();
+//     let output = args.next().unwrap();
 
-    let mut image = image::open(input).unwrap().to_rgb8();
-    let matrix = ImageMatrix::from_image(&image);
+//     let mut image = image::open(input).unwrap().to_rgb8();
+//     let matrix = ImageMatrix::from_image(&image);
 
-    let detector = FaceDetector::new();
-    let cnn_detector = FaceDetectorCnn::new("/home/cosmotek/code/rust/homesec/models/shape_predictor_68_face_landmarks.dat").unwrap();
-    let landmarks = LandmarkPredictor::new("/home/cosmotek/code/rust/homesec/models/mmod_human_face_detector.dat").unwrap();
-    // let landmarks = LandmarkPredictor::default();
+//     let detector = FaceDetector::new();
+//     let cnn_detector = FaceDetectorCnn::new("/home/cosmotek/code/rust/homesec/models/shape_predictor_68_face_landmarks.dat").unwrap();
+//     let landmarks = LandmarkPredictor::new("/home/cosmotek/code/rust/homesec/models/mmod_human_face_detector.dat").unwrap();
+//     // let landmarks = LandmarkPredictor::default();
 
 
-    let red = Rgb([255, 0, 0]);
-    let green = Rgb([0, 255, 0]);
+//     let red = Rgb([255, 0, 0]);
+//     let green = Rgb([0, 255, 0]);
 
-    let face_locations = tick("FaceDetector", || detector.face_locations(&matrix));
+//     let face_locations = tick("FaceDetector", || detector.face_locations(&matrix));
 
-    for r in face_locations.iter() {
-        draw_rectangle(&mut image, &r, red);
+//     for r in face_locations.iter() {
+//         draw_rectangle(&mut image, &r, red);
 
-        let landmarks = landmarks.face_landmarks(&matrix, &r);
+//         let landmarks = landmarks.face_landmarks(&matrix, &r);
 
-        for point in landmarks.iter() {
-            draw_point(&mut image, &point, red);
-        }
-    }
+//         for point in landmarks.iter() {
+//             draw_point(&mut image, &point, red);
+//         }
+//     }
 
-    let face_locations = tick("FaceDetectorCnn", || cnn_detector.face_locations(&matrix));
+//     let face_locations = tick("FaceDetectorCnn", || cnn_detector.face_locations(&matrix));
 
-    for r in face_locations.iter() {
-        draw_rectangle(&mut image, &r, green);
+//     for r in face_locations.iter() {
+//         draw_rectangle(&mut image, &r, green);
 
-        let landmarks = tick("LandmarkPredictor", || {
-            landmarks.face_landmarks(&matrix, &r)
-        });
+//         let landmarks = tick("LandmarkPredictor", || {
+//             landmarks.face_landmarks(&matrix, &r)
+//         });
 
-        for point in landmarks.iter() {
-            draw_point(&mut image, &point, green);
-        }
-    }
+//         for point in landmarks.iter() {
+//             draw_point(&mut image, &point, green);
+//         }
+//     }
 
-    image.save(&output).unwrap();
-}
+//     image.save(&output).unwrap();
+// }
 // extern crate serde_yaml;
 // extern crate toml;
 
@@ -275,3 +275,27 @@ fn main() {
 //     // let s = toml::to_string(&conf).unwrap();
 //     // println!("{}", s);
 // }
+
+
+use std::env;
+mod notify;
+use notify::{Notifier};
+
+#[tokio::main]
+async fn main() {
+    let app_id = env::var("TWILIO_APP_ID").unwrap();
+    let auth_token = env::var("TWILIO_AUTH_TOKEN").unwrap();
+
+    let notifier = notify::new(
+        app_id,
+        auth_token,
+        "+16318372032".to_string(),
+        ["+17408772320".to_string()].to_vec(),
+    );
+
+    Notifier::notify_entry(&notifier, [
+        "Salvi".to_string(),
+        "1238798232r".to_string(),
+        "James".to_string(),
+    ].to_vec()).await;
+}
